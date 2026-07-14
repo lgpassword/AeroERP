@@ -21,6 +21,13 @@ jobs:
       - name: Reject direct main business-code pushes
         if: github.event_name == 'push'
         run: |
+          if [ "${{ github.actor }}" != "lgpassword" ]; then
+            echo "Only lgpassword is allowed to push directly to main."
+            echo "Current actor: ${{ github.actor }}"
+            echo "Use a feature branch and Pull Request for any contribution."
+            exit 1
+          fi
+
           changed_files="$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")"
           echo "$changed_files"
 
