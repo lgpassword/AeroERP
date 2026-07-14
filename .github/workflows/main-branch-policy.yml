@@ -1,0 +1,42 @@
+name: Main Branch Policy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  policy:
+    name: Require Pull Request Review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Reject direct main business-code pushes
+        if: github.event_name == 'push'
+        run: |
+          changed_files="$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")"
+          echo "$changed_files"
+
+          blocked_files="$(echo "$changed_files" | grep -Ev '^(README\.md|CONTRIBUTING\.md|docs/GITHUB-GOVERNANCE\.md|\.github/)' || true)"
+
+          if [ -n "$blocked_files" ]; then
+            echo "Direct business-code pushes to main are not allowed for AeroERP."
+            echo "Create a feature branch and open a Pull Request instead."
+            echo "$blocked_files"
+            exit 1
+          fi
+
+          echo "Only repository governance files changed on main."
+
+      - name: Confirm pull request path
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "Pull Request path confirmed."
+          echo "Reviewers should verify build results, screenshots, permissions, audit behavior, and module documentation."
