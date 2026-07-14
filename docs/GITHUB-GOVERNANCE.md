@@ -38,7 +38,20 @@
 
 如果仓库使用 `master` 作为主分支，也应给 `master` 添加相同规则。
 
-## 4. Pull Request 模板
+## 4. 私有仓库套餐限制下的替代约束
+
+如果 GitHub 返回 `Upgrade to GitHub Pro or make this repository public to enable this feature`，说明当前私有仓库无法启用官方 branch protection 或 ruleset。
+
+在这种情况下，项目保留以下替代约束：
+
+- `main` 只保存仓库入口、治理说明和 PR 模板，不直接承载完整业务代码。
+- 完整源码先进入 `release/*` 或 `feature/*` 分支。
+- 通过 Pull Request 审查完整代码后再决定是否合并。
+- `.github/workflows/main-branch-policy.yml` 会在直接 push 到 `main` 时失败，用于留下审计信号。
+
+注意：GitHub Actions 失败不能像官方分支保护一样预先阻止推送。要获得强制拦截能力，需要升级 GitHub Pro/Team，或者将仓库改为公开仓库后再启用 branch protection/ruleset。
+
+## 5. Pull Request 模板
 
 项目已提供 `.github/pull_request_template.md`。提交 PR 时请填写：
 
@@ -49,7 +62,7 @@
 - 权限、审计、数据结构影响
 - 风险和回滚说明
 
-## 5. 不应上传的文件
+## 6. 不应上传的文件
 
 以下文件只属于本地运行或构建过程，不进入 Git：
 
