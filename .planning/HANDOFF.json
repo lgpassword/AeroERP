@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-07-13T18:16:09+08:00",
+  "phase": "pluginized-extension",
+  "phase_name": "插件化扩展体系：WMS、高级制造与报表中心插件",
+  "phase_dir": ".planning",
+  "plan": 0,
+  "task": 11,
+  "total_tasks": 13,
+  "status": "blocked_runtime_validation",
+  "completed_tasks": [
+    { "id": "AeroERP-e7y", "name": "独立本地化模块：中英文切换与英文内容编辑", "status": "done" },
+    { "id": "AeroERP-10f", "name": "插件底座：模块清单、引用边界与启动建表约定", "status": "done" },
+    { "id": "AeroERP-2i6", "name": "岗位权限插件：部门、岗位、用户自定义角色与权限包", "status": "done" },
+    { "id": "AeroERP-eda", "name": "WMS 插件：后端模型与建表初始化", "status": "done" },
+    { "id": "AeroERP-60w", "name": "WMS 插件：服务接口与审计", "status": "done" },
+    { "id": "AeroERP-wjm", "name": "WMS 插件：前端执行台与导航入口", "status": "done" },
+    { "id": "AeroERP-cs2", "name": "高级制造插件：后端模型与建表初始化", "status": "done" },
+    { "id": "AeroERP-b1b", "name": "高级制造插件：服务接口与审计", "status": "done" },
+    { "id": "AeroERP-x3c", "name": "高级制造插件：前端执行台与导航入口", "status": "done" },
+    { "id": "AeroERP-dve", "name": "报表中心插件：后端模型与建表初始化", "status": "done" },
+    { "id": "AeroERP-8nb", "name": "报表中心插件：服务接口与审计", "status": "done" },
+    { "id": "AeroERP-fpg", "name": "报表中心插件：前端报表工作台与导航入口", "status": "done" }
+  ],
+  "remaining_tasks": [
+    { "id": "AeroERP-bku", "name": "WMS 插件：运行验证与收口", "status": "blocked", "blocked_by": "AeroERP-9f6" },
+    { "id": "AeroERP-v6m", "name": "WMS 插件：上架、拣货、波次、容器与库内路径", "status": "in_progress", "blocked_by": "AeroERP-bku" },
+    { "id": "AeroERP-bmx", "name": "高级制造插件：构建运行验证与收口", "status": "blocked", "blocked_by": "AeroERP-9f6" },
+    { "id": "AeroERP-o6s", "name": "高级制造插件：工艺路线、工序、产能、成本与 MRP", "status": "in_progress", "blocked_by": "AeroERP-bmx" },
+    { "id": "AeroERP-mzn", "name": "报表中心插件：构建运行验证与收口", "status": "blocked", "blocked_by": "AeroERP-9f6" },
+    { "id": "AeroERP-wkj", "name": "报表中心插件：经营报表、查询模型与导出任务", "status": "in_progress", "blocked_by": "AeroERP-mzn" }
+  ],
+  "blockers": [
+    {
+      "id": "AeroERP-9f6",
+      "description": "本机 Windows 应用程序控制策略 0x800711C7 阻止 AppHost 加载 src\\AeroERP.AppHost\\bin\\Debug\\net10.0\\AeroERP.Modules.Workflow.dll。",
+      "type": "environment",
+      "workaround": "需要管理员调整 Smart App Control / 企业代码完整性策略，或将构建产物加入允许范围；解除前不要关闭 WMS、高级制造或报表中心运行验证 bead。"
+    }
+  ],
+  "human_actions_pending": [
+    {
+      "action": "解除或放行 Windows 应用程序控制策略对 AeroERP.Modules.Workflow.dll 的拦截。",
+      "context": "WMS、高级制造、报表中心前后端构建已通过，但 AppHost HTTP 运行验证无法继续。",
+      "blocking": true
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "报表中心作为 aeroerp.reporting 独立插件。",
+      "rationale": "报表定义、运行记录和导出任务不应并入业务单据模块，也不复制业务明细表。",
+      "phase": "pluginized-extension"
+    },
+    {
+      "decision": "报表运行使用固定查询模型聚合现有业务表。",
+      "rationale": "避免任意 SQL 和重复建模，同时保持报表结果来自实时持久化数据。",
+      "phase": "pluginized-extension"
+    }
+  ],
+  "verification": [
+    { "command": "dotnet restore AeroERP.slnx", "result": "passed", "notes": "新增 AdvancedManufacturing 和 Reporting 项目后 restore 通过。" },
+    { "command": "dotnet build AeroERP.slnx --no-restore", "result": "passed", "notes": "0 警告，0 错误；包含 WMS、高级制造、报表中心插件改动。" },
+    { "command": "npm run build", "result": "passed", "notes": "UI style、UI kit、React web TypeScript 与 Vite 生产构建通过。" },
+    { "command": "AppHost HTTP runtime validation", "result": "blocked", "notes": "本会话使用系统 Windows PowerShell 重试启动，进程退出码 1，5099 未监听；logs\\apphost.err.log 确认 AeroERP.Modules.Workflow.dll 被 Windows Code Integrity / Smart App Control 0x800711C7 阻止。" }
+  ],
+  "next_action": "若管理员已解除 AeroERP-9f6，则执行 WMS、高级制造和报表中心运行验证并关闭父 bead；否则继续下一个 ready 插件 bead。",
+  "context_notes": "当前项目根目录必须是 C:\\Users\\liugang\\Downloads\\WebVella-ERP-master\\AeroERP。不要把 WMS、高级制造或报表中心的代码/构建当作未完成；当前未完成的是受环境策略阻塞的运行验证。"
+}
