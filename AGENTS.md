@@ -1,84 +1,75 @@
-# Agent Instructions
+# AeroERP Agent Rules
 
-This project uses **bd** (beads) for issue tracking. Run `bd prime` for full workflow context.
+## Workflow
 
-## Quick Reference
+- Use `beads` as the primary task tracker for all non-trivial work.
+- Keep `.planning/` artifacts current when scope, architecture, or phase boundaries change.
+- Do not start implementation without first creating or claiming the relevant bead.
+- Close completed beads before ending a session.
 
-```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --claim  # Claim work atomically
-bd close <id>         # Complete work
-bd dolt push          # Push beads data to remote
-```
+## Architecture Guardrails
 
-## Non-Interactive Shell Commands
+- Treat AeroERP as a new system. Do not copy application runtime code from `WebVella-ERP-master` unless explicitly approved and reviewed for fit.
+- Keep backend responsibilities split across dedicated class libraries:
+  - `AeroERP.BuildingBlocks.*` for shared low-level concerns
+  - `AeroERP.Platform.*` for cross-cutting platform runtime
+  - `AeroERP.Modules.*` for business modules
+  - `AeroERP.AppHost` for composition only
+- Keep frontend responsibilities split across dedicated packages/apps:
+  - UI style/token/motion library
+  - Shared business UI component package
+  - Main web app shell
+- Modules/plugins must depend inward on shared contracts and building blocks only. Avoid lateral module dependencies.
 
-**ALWAYS use non-interactive flags** with file operations to avoid hanging on confirmation prompts.
+## Product Rules
 
-Shell commands like `cp`, `mv`, and `rm` may be aliased to include `-i` (interactive) mode on some systems, causing the agent to hang indefinitely waiting for y/n input.
+- No seeded demo/test data in user-facing screens.
+- A screen may render:
+  - live persisted data, or
+  - an explicit empty state with clear next actions.
+- Never ship dead UI. Every clickable command must cause:
+  - navigation,
+  - a state mutation,
+  - a validation response,
+  - a modal/drawer state change tied to a real workflow, or
+  - a persisted backend result.
+- Every new module must include its own usable UI surfaces, not only backend code.
+- Upstream/downstream flows must stay closed-loop. Do not add buttons or states that terminate without a defined next business effect.
 
-**Use these forms instead:**
-```bash
-# Force overwrite without prompting
-cp -f source dest           # NOT: cp source dest
-mv -f source dest           # NOT: mv source dest
-rm -f file                  # NOT: rm file
+## AI Agent Review Policy
 
-# For recursive operations
-rm -rf directory            # NOT: rm -r directory
-cp -rf source dest          # NOT: cp -r source dest
-```
+- Every intelligent-agent usage must be reviewable and auditable.
+- Any feature involving AI/agent behavior must:
+  - persist review requests,
+  - persist reviewer decisions,
+  - record timestamps and actors,
+  - expose review state in the UI,
+  - restrict final execution behind permission checks.
+- Do not auto-approve agent actions by default.
+- New agent integrations must update both the runtime policy implementation and the UI review surfaces.
 
-**Other commands that may prompt:**
-- `scp` - use `-o BatchMode=yes` for non-interactive
-- `ssh` - use `-o BatchMode=yes` to fail instead of prompting
-- `apt-get` - use `-y` flag
-- `brew` - use `HOMEBREW_NO_AUTO_UPDATE=1` env var
+## Plugin Visibility Policy
 
-<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:ca08a54f -->
-## Beads Issue Tracker
+- Plugins/modules must support visible/hidden state.
+- Visibility changes must be permission-controlled and audited.
+- Hidden modules must disappear from navigation and entry points for unauthorized users without breaking persistence integrity.
 
-This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
+## UI Standards
 
-### Quick Reference
+- UI style primitives, tokens, and motion belong in the UI style library, not inside business modules.
+- Business screens may compose shared UI components but must not redefine the visual system ad hoc.
+- Use restrained enterprise UI styling with meaningful motion:
+  - route transitions,
+  - drawer/modal entry and exit,
+  - optimistic and completion feedback,
+  - empty-state to populated-state changes.
 
-```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --claim  # Claim work
-bd close <id>         # Complete work
-```
+## Verification
 
-### Rules
-
-- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
-- Run `bd prime` for detailed command reference and session close protocol
-- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
-
-## Session Completion
-
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
-
-**MANDATORY WORKFLOW:**
-
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
-   ```bash
-   git pull --rebase
-   bd dolt push
-   git push
-   git status  # MUST show "up to date with origin"
-   ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
-
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
-<!-- END BEADS INTEGRATION -->
+- Before marking work complete, verify:
+  - the relevant module builds,
+  - the UI path is navigable,
+  - empty states are coherent,
+  - commands are not dead,
+  - permissions and visibility rules hold,
+  - audit events are written where required.

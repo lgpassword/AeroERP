@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\AeroERP.BuildingBlocks\AeroERP.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\AeroERP.Platform\AeroERP.Platform.csproj" />
+    <ProjectReference Include="..\AeroERP.Platform.Infrastructure\AeroERP.Platform.Infrastructure.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.MasterData\AeroERP.Modules.MasterData.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.Procurement\AeroERP.Modules.Procurement.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.Sales\AeroERP.Modules.Sales.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.Inventory\AeroERP.Modules.Inventory.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.Integration\AeroERP.Modules.Integration.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.DocumentExchange\AeroERP.Modules.DocumentExchange.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.Finance\AeroERP.Modules.Finance.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.Workflow\AeroERP.Modules.Workflow.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.Control\AeroERP.Modules.Control.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.Localization\AeroERP.Modules.Localization.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.Manufacturing\AeroERP.Modules.Manufacturing.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.MobileWork\AeroERP.Modules.MobileWork.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.AdvancedManufacturing\AeroERP.Modules.AdvancedManufacturing.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.Planning\AeroERP.Modules.Planning.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.PositionPermissions\AeroERP.Modules.PositionPermissions.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.Quality\AeroERP.Modules.Quality.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.Reporting\AeroERP.Modules.Reporting.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.Wms\AeroERP.Modules.Wms.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>
