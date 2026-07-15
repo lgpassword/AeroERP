@@ -1,0 +1,26 @@
+{
+  "name": "aeroerp",
+  "private": true,
+  "version": "0.1.0",
+  "description": "AeroERP modular ERP workspace",
+  "scripts": {
+    "dev": "npm run dev --workspace @aeroerp/web",
+    "build": "npm run build --workspace @aeroerp/ui-style && npm run build --workspace @aeroerp/ui-kit && npm run build --workspace @aeroerp/web",
+    "lint": "npm run lint --workspace @aeroerp/web",
+    "screenshots": "node scripts/capture-screenshots.mjs"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "keywords": [
+    "erp",
+    "modular-monolith",
+    "react",
+    "dotnet"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
+}

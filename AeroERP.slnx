@@ -1,0 +1,34 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AeroERP.AppHost/AeroERP.AppHost.csproj" />
+    <Project Path="src/AeroERP.BuildingBlocks/AeroERP.BuildingBlocks.csproj" />
+    <Project Path="src/AeroERP.Modules.AdvancedManufacturing/AeroERP.Modules.AdvancedManufacturing.csproj" />
+    <Project Path="src/AeroERP.Modules.Control/AeroERP.Modules.Control.csproj" />
+    <Project Path="src/AeroERP.Modules.DocumentExchange/AeroERP.Modules.DocumentExchange.csproj" />
+    <Project Path="src/AeroERP.Modules.Finance/AeroERP.Modules.Finance.csproj" />
+    <Project Path="src/AeroERP.Modules.Integration/AeroERP.Modules.Integration.csproj" />
+    <Project Path="src/AeroERP.Modules.Inventory/AeroERP.Modules.Inventory.csproj" />
+    <Project Path="src/AeroERP.Modules.Localization/AeroERP.Modules.Localization.csproj" />
+    <Project Path="src/AeroERP.Modules.Manufacturing/AeroERP.Modules.Manufacturing.csproj" />
+    <Project Path="src/AeroERP.Modules.MasterData/AeroERP.Modules.MasterData.csproj" />
+    <Project Path="src/AeroERP.Modules.MobileWork/AeroERP.Modules.MobileWork.csproj" />
+    <Project Path="src/AeroERP.Modules.OrganizationCollaboration/AeroERP.Modules.OrganizationCollaboration.csproj" />
+    <Project Path="src/AeroERP.Modules.Planning/AeroERP.Modules.Planning.csproj" />
+    <Project Path="src/AeroERP.Modules.PositionPermissions/AeroERP.Modules.PositionPermissions.csproj" />
+    <Project Path="src/AeroERP.Modules.Procurement/AeroERP.Modules.Procurement.csproj" />
+    <Project Path="src/AeroERP.Modules.Quality/AeroERP.Modules.Quality.csproj" />
+    <Project Path="src/AeroERP.Modules.Reporting/AeroERP.Modules.Reporting.csproj" />
+    <Project Path="src/AeroERP.Modules.Sales/AeroERP.Modules.Sales.csproj" />
+    <Project Path="src/AeroERP.Modules.Workflow/AeroERP.Modules.Workflow.csproj" />
+    <Project Path="src/AeroERP.Modules.Wms/AeroERP.Modules.Wms.csproj" />
+    <Project Path="src/AeroERP.Platform.Infrastructure/AeroERP.Platform.Infrastructure.csproj" />
+    <Project Path="src/AeroERP.Platform/AeroERP.Platform.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AeroERP.AppHost.Tests/AeroERP.AppHost.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/AeroERP.FinanceReportValidation/AeroERP.FinanceReportValidation.csproj" />
+    <Project Path="tools/AeroERP.InventoryCostValidation/AeroERP.InventoryCostValidation.csproj" />
+  </Folder>
+</Solution>
