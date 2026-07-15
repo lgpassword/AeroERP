@@ -3940,6 +3940,185 @@ public static class SchemaBootstrapper
     }
 
     /// <summary>
+    /// Ensure Organization Collaboration Schema Async。
+    /// </summary>
+    /// <param name="dbContext">db Context 参数。</param>
+    /// <param name="cancellationToken">请求取消令牌。</param>
+    public static async Task EnsureOrganizationCollaborationSchemaAsync(AeroErpDbContext dbContext, CancellationToken cancellationToken = default)
+    {
+        if (dbContext.Database.IsSqlite())
+        {
+            await EnsureSqliteOrganizationCollaborationSchemaAsync(dbContext, cancellationToken);
+            return;
+        }
+
+        if (dbContext.Database.IsNpgsql())
+        {
+            await EnsurePostgresOrganizationCollaborationSchemaAsync(dbContext, cancellationToken);
+        }
+    }
+
+    private static async Task EnsureSqliteOrganizationCollaborationSchemaAsync(AeroErpDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var statements = new[]
+        {
+            """
+            CREATE TABLE IF NOT EXISTS "CollaborationConversations" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_CollaborationConversations" PRIMARY KEY,
+                "CreatedAtUtc" TEXT NOT NULL,
+                "UpdatedAtUtc" TEXT NOT NULL,
+                "ConversationKey" TEXT NOT NULL,
+                "ScopeType" TEXT NOT NULL,
+                "Title" TEXT NOT NULL
+            );
+            """,
+            """CREATE UNIQUE INDEX IF NOT EXISTS "IX_CollaborationConversations_ConversationKey" ON "CollaborationConversations" ("ConversationKey");""",
+            """
+            CREATE TABLE IF NOT EXISTS "CollaborationParticipants" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_CollaborationParticipants" PRIMARY KEY,
+                "CreatedAtUtc" TEXT NOT NULL,
+                "UpdatedAtUtc" TEXT NOT NULL,
+                "ConversationId" TEXT NOT NULL,
+                "UserId" TEXT NOT NULL,
+                "UserName" TEXT NOT NULL,
+                "DisplayName" TEXT NOT NULL,
+                CONSTRAINT "FK_CollaborationParticipants_CollaborationConversations_ConversationId" FOREIGN KEY ("ConversationId") REFERENCES "CollaborationConversations" ("Id") ON DELETE CASCADE
+            );
+            """,
+            """CREATE UNIQUE INDEX IF NOT EXISTS "IX_CollaborationParticipants_ConversationId_UserId" ON "CollaborationParticipants" ("ConversationId", "UserId");""",
+            """
+            CREATE TABLE IF NOT EXISTS "CollaborationMessages" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_CollaborationMessages" PRIMARY KEY,
+                "CreatedAtUtc" TEXT NOT NULL,
+                "UpdatedAtUtc" TEXT NOT NULL,
+                "ConversationId" TEXT NOT NULL,
+                "SenderUserId" TEXT NOT NULL,
+                "SenderUserName" TEXT NOT NULL,
+                "SenderDisplayName" TEXT NOT NULL,
+                "Content" TEXT NOT NULL,
+                CONSTRAINT "FK_CollaborationMessages_CollaborationConversations_ConversationId" FOREIGN KEY ("ConversationId") REFERENCES "CollaborationConversations" ("Id") ON DELETE CASCADE
+            );
+            """,
+            """CREATE INDEX IF NOT EXISTS "IX_CollaborationMessages_ConversationId_CreatedAtUtc" ON "CollaborationMessages" ("ConversationId", "CreatedAtUtc");""",
+            """
+            CREATE TABLE IF NOT EXISTS "CollaborationAttachments" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_CollaborationAttachments" PRIMARY KEY,
+                "CreatedAtUtc" TEXT NOT NULL,
+                "UpdatedAtUtc" TEXT NOT NULL,
+                "ConversationId" TEXT NOT NULL,
+                "MessageId" TEXT NOT NULL,
+                "FileName" TEXT NOT NULL,
+                "ContentType" TEXT NOT NULL,
+                "SizeBytes" INTEGER NOT NULL,
+                "Content" BLOB NOT NULL,
+                "UploadedByUserId" TEXT NOT NULL,
+                "UploadedBy" TEXT NOT NULL,
+                CONSTRAINT "FK_CollaborationAttachments_CollaborationMessages_MessageId" FOREIGN KEY ("MessageId") REFERENCES "CollaborationMessages" ("Id") ON DELETE CASCADE
+            );
+            """,
+            """CREATE INDEX IF NOT EXISTS "IX_CollaborationAttachments_ConversationId_MessageId" ON "CollaborationAttachments" ("ConversationId", "MessageId");""",
+            """
+            CREATE TABLE IF NOT EXISTS "CollaborationReadStates" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_CollaborationReadStates" PRIMARY KEY,
+                "CreatedAtUtc" TEXT NOT NULL,
+                "UpdatedAtUtc" TEXT NOT NULL,
+                "ConversationId" TEXT NOT NULL,
+                "UserId" TEXT NOT NULL,
+                "LastReadMessageId" TEXT NULL,
+                "LastReadAtUtc" TEXT NULL,
+                CONSTRAINT "FK_CollaborationReadStates_CollaborationConversations_ConversationId" FOREIGN KEY ("ConversationId") REFERENCES "CollaborationConversations" ("Id") ON DELETE CASCADE
+            );
+            """,
+            """CREATE UNIQUE INDEX IF NOT EXISTS "IX_CollaborationReadStates_ConversationId_UserId" ON "CollaborationReadStates" ("ConversationId", "UserId");"""
+        };
+
+        foreach (var statement in statements)
+        {
+            await dbContext.Database.ExecuteSqlRawAsync(statement, cancellationToken);
+        }
+    }
+
+    private static async Task EnsurePostgresOrganizationCollaborationSchemaAsync(AeroErpDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var statements = new[]
+        {
+            """
+            CREATE TABLE IF NOT EXISTS "CollaborationConversations" (
+                "Id" uuid NOT NULL PRIMARY KEY,
+                "CreatedAtUtc" timestamp with time zone NOT NULL,
+                "UpdatedAtUtc" timestamp with time zone NOT NULL,
+                "ConversationKey" text NOT NULL,
+                "ScopeType" text NOT NULL,
+                "Title" text NOT NULL
+            );
+            """,
+            """CREATE UNIQUE INDEX IF NOT EXISTS "IX_CollaborationConversations_ConversationKey" ON "CollaborationConversations" ("ConversationKey");""",
+            """
+            CREATE TABLE IF NOT EXISTS "CollaborationParticipants" (
+                "Id" uuid NOT NULL PRIMARY KEY,
+                "CreatedAtUtc" timestamp with time zone NOT NULL,
+                "UpdatedAtUtc" timestamp with time zone NOT NULL,
+                "ConversationId" uuid NOT NULL,
+                "UserId" uuid NOT NULL,
+                "UserName" text NOT NULL,
+                "DisplayName" text NOT NULL,
+                CONSTRAINT "FK_CollaborationParticipants_CollaborationConversations_ConversationId" FOREIGN KEY ("ConversationId") REFERENCES "CollaborationConversations" ("Id") ON DELETE CASCADE
+            );
+            """,
+            """CREATE UNIQUE INDEX IF NOT EXISTS "IX_CollaborationParticipants_ConversationId_UserId" ON "CollaborationParticipants" ("ConversationId", "UserId");""",
+            """
+            CREATE TABLE IF NOT EXISTS "CollaborationMessages" (
+                "Id" uuid NOT NULL PRIMARY KEY,
+                "CreatedAtUtc" timestamp with time zone NOT NULL,
+                "UpdatedAtUtc" timestamp with time zone NOT NULL,
+                "ConversationId" uuid NOT NULL,
+                "SenderUserId" uuid NOT NULL,
+                "SenderUserName" text NOT NULL,
+                "SenderDisplayName" text NOT NULL,
+                "Content" text NOT NULL,
+                CONSTRAINT "FK_CollaborationMessages_CollaborationConversations_ConversationId" FOREIGN KEY ("ConversationId") REFERENCES "CollaborationConversations" ("Id") ON DELETE CASCADE
+            );
+            """,
+            """CREATE INDEX IF NOT EXISTS "IX_CollaborationMessages_ConversationId_CreatedAtUtc" ON "CollaborationMessages" ("ConversationId", "CreatedAtUtc");""",
+            """
+            CREATE TABLE IF NOT EXISTS "CollaborationAttachments" (
+                "Id" uuid NOT NULL PRIMARY KEY,
+                "CreatedAtUtc" timestamp with time zone NOT NULL,
+                "UpdatedAtUtc" timestamp with time zone NOT NULL,
+                "ConversationId" uuid NOT NULL,
+                "MessageId" uuid NOT NULL,
+                "FileName" text NOT NULL,
+                "ContentType" text NOT NULL,
+                "SizeBytes" bigint NOT NULL,
+                "Content" bytea NOT NULL,
+                "UploadedByUserId" uuid NOT NULL,
+                "UploadedBy" text NOT NULL,
+                CONSTRAINT "FK_CollaborationAttachments_CollaborationMessages_MessageId" FOREIGN KEY ("MessageId") REFERENCES "CollaborationMessages" ("Id") ON DELETE CASCADE
+            );
+            """,
+            """CREATE INDEX IF NOT EXISTS "IX_CollaborationAttachments_ConversationId_MessageId" ON "CollaborationAttachments" ("ConversationId", "MessageId");""",
+            """
+            CREATE TABLE IF NOT EXISTS "CollaborationReadStates" (
+                "Id" uuid NOT NULL PRIMARY KEY,
+                "CreatedAtUtc" timestamp with time zone NOT NULL,
+                "UpdatedAtUtc" timestamp with time zone NOT NULL,
+                "ConversationId" uuid NOT NULL,
+                "UserId" uuid NOT NULL,
+                "LastReadMessageId" uuid NULL,
+                "LastReadAtUtc" timestamp with time zone NULL,
+                CONSTRAINT "FK_CollaborationReadStates_CollaborationConversations_ConversationId" FOREIGN KEY ("ConversationId") REFERENCES "CollaborationConversations" ("Id") ON DELETE CASCADE
+            );
+            """,
+            """CREATE UNIQUE INDEX IF NOT EXISTS "IX_CollaborationReadStates_ConversationId_UserId" ON "CollaborationReadStates" ("ConversationId", "UserId");"""
+        };
+
+        foreach (var statement in statements)
+        {
+            await dbContext.Database.ExecuteSqlRawAsync(statement, cancellationToken);
+        }
+    }
+
+    /// <summary>
     /// Ensure Sqlite Column Async。
     /// </summary>
     /// <param name="dbContext">db Context 参数。</param>

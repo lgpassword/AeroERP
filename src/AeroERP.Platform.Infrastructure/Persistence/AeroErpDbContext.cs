@@ -8,6 +8,7 @@ using AeroERP.Modules.Inventory.Domain;
 using AeroERP.Modules.Localization.Domain;
 using AeroERP.Modules.Manufacturing.Domain;
 using AeroERP.Modules.MobileWork.Domain;
+using AeroERP.Modules.OrganizationCollaboration.Domain;
 using AeroERP.Modules.Planning.Domain;
 using AeroERP.Modules.PositionPermissions.Domain;
 using AeroERP.Modules.Procurement.Domain;
@@ -116,6 +117,11 @@ public sealed class AeroErpDbContext(DbContextOptions<AeroErpDbContext> options)
     public DbSet<PrintTemplate> PrintTemplates => Set<PrintTemplate>();
     public DbSet<PrintJob> PrintJobs => Set<PrintJob>();
     public DbSet<FileAuditRecord> FileAuditRecords => Set<FileAuditRecord>();
+    public DbSet<CollaborationConversation> CollaborationConversations => Set<CollaborationConversation>();
+    public DbSet<CollaborationParticipant> CollaborationParticipants => Set<CollaborationParticipant>();
+    public DbSet<CollaborationMessage> CollaborationMessages => Set<CollaborationMessage>();
+    public DbSet<CollaborationAttachment> CollaborationAttachments => Set<CollaborationAttachment>();
+    public DbSet<CollaborationReadState> CollaborationReadStates => Set<CollaborationReadState>();
 
     /// <summary>
     /// On Model Creating。
@@ -163,6 +169,44 @@ public sealed class AeroErpDbContext(DbContextOptions<AeroErpDbContext> options)
         modelBuilder.Entity<AgentReviewRequest>().Property(x => x.AgentName).HasMaxLength(128);
         modelBuilder.Entity<AgentReviewRequest>().Property(x => x.ActionName).HasMaxLength(128);
         modelBuilder.Entity<AgentReviewRequest>().Property(x => x.Status).HasMaxLength(32);
+
+        modelBuilder.Entity<CollaborationConversation>().HasIndex(x => x.ConversationKey).IsUnique();
+        modelBuilder.Entity<CollaborationConversation>().Property(x => x.ConversationKey).HasMaxLength(160);
+        modelBuilder.Entity<CollaborationConversation>().Property(x => x.ScopeType).HasMaxLength(32);
+        modelBuilder.Entity<CollaborationConversation>().Property(x => x.Title).HasMaxLength(128);
+        modelBuilder.Entity<CollaborationConversation>()
+            .HasMany(x => x.Participants)
+            .WithOne()
+            .HasForeignKey(x => x.ConversationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<CollaborationConversation>().Navigation(x => x.Participants).AutoInclude();
+
+        modelBuilder.Entity<CollaborationParticipant>().HasIndex(x => new { x.ConversationId, x.UserId }).IsUnique();
+        modelBuilder.Entity<CollaborationParticipant>().Property(x => x.UserName).HasMaxLength(64);
+        modelBuilder.Entity<CollaborationParticipant>().Property(x => x.DisplayName).HasMaxLength(128);
+
+        modelBuilder.Entity<CollaborationMessage>().HasIndex(x => new { x.ConversationId, x.CreatedAtUtc });
+        modelBuilder.Entity<CollaborationMessage>().Property(x => x.SenderUserName).HasMaxLength(64);
+        modelBuilder.Entity<CollaborationMessage>().Property(x => x.SenderDisplayName).HasMaxLength(128);
+        modelBuilder.Entity<CollaborationMessage>().Property(x => x.Content).HasMaxLength(2000);
+
+        modelBuilder.Entity<CollaborationAttachment>().HasIndex(x => new { x.ConversationId, x.MessageId });
+        modelBuilder.Entity<CollaborationAttachment>().Property(x => x.FileName).HasMaxLength(192);
+        modelBuilder.Entity<CollaborationAttachment>().Property(x => x.ContentType).HasMaxLength(96);
+        modelBuilder.Entity<CollaborationAttachment>().Property(x => x.UploadedBy).HasMaxLength(128);
+        modelBuilder.Entity<CollaborationAttachment>()
+            .HasOne<CollaborationMessage>()
+            .WithMany()
+            .HasForeignKey(x => x.MessageId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<CollaborationReadState>().HasIndex(x => new { x.ConversationId, x.UserId }).IsUnique();
+        modelBuilder.Entity<CollaborationReadState>()
+            .HasOne<CollaborationConversation>()
+            .WithMany()
+            .HasForeignKey(x => x.ConversationId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Customer>().HasIndex(x => x.Code).IsUnique();
         modelBuilder.Entity<Supplier>().HasIndex(x => x.Code).IsUnique();

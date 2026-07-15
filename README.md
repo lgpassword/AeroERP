@@ -10,17 +10,119 @@ AeroERP 是一个全新的模块化 ERP 项目，采用 `.NET 10 + ASP.NET Core`
 
 项目欢迎共创，但不允许随意把代码直接上传到主分支。所有变更应通过功能分支和 Pull Request 审查，具体规则见 [CONTRIBUTING.md](CONTRIBUTING.md) 和 [GitHub 仓库治理说明](docs/GITHUB-GOVERNANCE.md)。
 
+## 快速运行
+
+### 环境要求
+
+- .NET 10 SDK
+- Node.js 24+ 与 npm
+- 可选：PostgreSQL。未配置时开发环境会自动使用本地 SQLite。
+
+### 启动后端
+
+推荐在仓库根目录启动单文件 AppHost：
+
+```powershell
+.\scripts\start-apphost-single.ps1 -StopExisting
+```
+
+默认后端地址：
+
+- API：`http://localhost:5099/api`
+- Swagger：`http://localhost:5099/swagger`
+
+如果本机没有 Windows 应用控制策略拦截，也可以直接运行：
+
+```powershell
+dotnet restore AeroERP.slnx
+dotnet run --project src/AeroERP.AppHost --urls http://localhost:5099
+```
+
+### 启动前端
+
+```powershell
+npm install
+npm run dev --workspace @aeroerp/web -- --host 0.0.0.0 --port 5173
+```
+
+访问地址：
+
+- Web 工作台：`http://localhost:5173`
+
+默认管理员账号：
+
+```text
+账号：admin
+密码：Admin@123456
+```
+
+该账号只用于系统初始化和本地审查，不会注入业务演示数据。
+
+## 主要模块与使用说明
+
+AeroERP 的模块入口由后端模块可见性和用户权限共同控制。没有权限的模块不会出现在导航中；没有维护权限的页面只展示只读说明或空状态，不保留不可用按钮。
+
+| 模块 | 入口 | 包含内容 | 如何使用 |
+| --- | --- | --- | --- |
+| 工作台 | `/workspace` | 可见模块、权限数量、业务链路、模块分组入口 | 登录后先进入工作台，确认当前账号能访问哪些模块，再进入对应业务页面。 |
+| 平台治理 | `/platform` | 账号、角色、模块显隐、组织、审计事件、智能体审查 | 首次使用先检查管理员账号、角色权限和模块可见性，再创建其他员工账号。 |
+| 组织协同 | `/organization-collaboration` | 组织联系人、会话、消息、附件、已读状态 | 从人员联系人发起会话，发送消息或附件，系统记录协同状态。 |
+| 人员管理 | `/people-management` | 员工账号、入职建档、组织清单、部门岗位结构 | 使用“入职建档”创建真实登录账号，选择角色按钮和登录状态后提交。 |
+| 插件中心 | `/plugin-center` | 插件分组、模块显隐、入口状态 | 查看已安装模块，按权限控制模块是否在导航和入口中显示。 |
+| 主数据 | `/master-data` | 客户、供应商、物料、仓库 | 先维护客户、供应商、物料和仓库，后续采购、销售、库存、制造都会引用这些数据。 |
+| 客户 CRM | `/crm` | 客户卡片、报价、订单管道 | 查看客户经营状态和销售阶段，跟进报价到订单的销售过程。 |
+| 采购管理 | `/procurement` | 采购申请、审核、采购订单、订单下达 | 创建采购申请，审核通过后转采购订单并下达，随后进入库存待入库。 |
+| 销售管理 | `/sales` | 销售报价、销售订单、待发货 | 创建报价并转订单，确认后标记待出库，随后进入库存出库。 |
+| 库存管理 | `/inventory` | 采购入库、销售出库、调拨、盘点、库位、余额、流水、存货明细账 | 根据采购/销售来源处理入库出库，查看数量、库位和移动加权成本。 |
+| WMS 执行 | `/wms` | 上架、拣货、波次、容器、仓内路径、PDA 队列 | 维护仓内执行任务，承接更细粒度的库内作业。 |
+| 移动作业 | `/mobile-work` | 移动设备、离线任务、扫码记录、移动队列 | 登记移动设备和离线任务，记录扫码执行结果。 |
+| 制造管理 | `/manufacturing` | BOM、工单、生产领料、完工入库、工单成本 | 维护 BOM，创建并下达工单，执行领料和完工入库，系统写入库存成本。 |
+| 高级制造 | `/advanced-manufacturing` | 工作中心、工艺路线、工序排程、产能、成本快照、MRP | 建立工艺和产能数据，生成成本快照和物料需求建议。 |
+| 计划执行 | `/planning` | 补货建议、外协订单、外协发料/收料、条码执行 | 基于真实库存生成补货建议，处理外协和条码执行闭环。 |
+| 质量追溯 | `/quality` | 来源候选、质检记录、批次事件、追溯链查询 | 从入库、完工、出库等真实来源创建质检和批次事件，按批次号查询链路。 |
+| 财务结算 | `/finance` | 会计科目、会计期间、凭证、应付、应收、税票、银行账户、结算、对账、报表 | 从业务单据生成应收应付和凭证，审核后查看账龄、试算平衡和基础报表。 |
+| 报表中心 | `/reporting` | 报表定义、运行记录、导出任务 | 配置报表定义，运行后生成记录并创建导出任务。 |
+| 审批中心 | `/workflow` | 流程定义、流程实例、审批待办、通知 | 处理采购申请等流程待办，审批结果会回写业务单据。 |
+| 经营管控 | `/control` | 经营指标、数据范围、编号规则 | 查看真实业务统计，配置角色数据范围和单据编号规则。 |
+| 岗位权限 | `/position-permissions` | 部门、岗位、权限包、角色绑定、岗位数据范围 | 维护岗位和权限包，将角色和数据范围绑定到岗位结构。 |
+| 语言与本地化 | `/localization` | 币种、税票设置、发票抬头、本地化内容 | 配置币种、税率和税票基础，支撑采购、销售和财务字段。 |
+| 通知与集成 | `/integration` | 消息通道、Webhook、外部连接器、同步任务、集成审计 | 配置外部系统连接和同步任务，查看集成执行状态。 |
+| 渠道集成 | `/channel-integration` | 企微、电商、内容渠道入口 | 作为外部渠道接入入口，承接后续渠道连接和授权配置。 |
+| 文档交换 | `/document-exchange` | 导入模板、字段映射、导入批次、导出任务、打印模板、文件审计 | 配置导入导出和打印任务，保留文件处理审计。 |
+
+## 推荐使用路径
+
+1. 先进入“平台治理”，确认账号、角色、权限和可见模块。
+2. 进入“主数据”，维护客户、供应商、物料和仓库。
+3. 采购链路：采购申请 -> 审批 -> 采购订单 -> 下达 -> 库存入库 -> 财务应付。
+4. 销售链路：销售报价 -> 销售订单 -> 确认/待发货 -> 库存出库 -> 财务应收。
+5. 制造链路：BOM -> 工单 -> 领料 -> 完工入库 -> 成本归集。
+6. 财务链路：会计期间 -> 凭证制单 -> 审核 -> 结算 -> 对账 -> 报表。
+7. 质量、计划、WMS、移动作业和文档交换可在主流程形成真实数据后继续使用。
+
 ## 界面截图
 
-截图保存在 [docs/images](docs/images)，截图索引见 [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md)。
+截图保存在 [docs/images](docs/images)，截图索引和重新生成方式见 [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md)。
 
-| 登录页 | 平台治理 |
+| 登录页 | 工作台 |
 | --- | --- |
-| ![AeroERP 登录页](docs/images/login.png) | ![AeroERP 平台治理](docs/images/platform.png) |
+| ![AeroERP 登录页](docs/images/login.png) | ![AeroERP 工作台](docs/images/workspace.png) |
+
+| 平台治理 | 人员管理 |
+| --- | --- |
+| ![AeroERP 平台治理](docs/images/platform.png) | ![AeroERP 人员管理](docs/images/people-management.png) |
+
+| 插件中心 | 主数据 |
+| --- | --- |
+| ![AeroERP 插件中心](docs/images/plugin-center.png) | ![AeroERP 主数据](docs/images/master-data.png) |
 
 | 库存执行 | 财务工作台 |
 | --- | --- |
 | ![AeroERP 库存执行](docs/images/inventory.png) | ![AeroERP 财务工作台](docs/images/finance.png) |
+
+| 制造管理 | 通知与集成 |
+| --- | --- |
+| ![AeroERP 制造管理](docs/images/manufacturing.png) | ![AeroERP 通知与集成](docs/images/integration.png) |
 
 ## 项目文档
 

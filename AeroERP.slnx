@@ -12,6 +12,7 @@
     <Project Path="src/AeroERP.Modules.Manufacturing/AeroERP.Modules.Manufacturing.csproj" />
     <Project Path="src/AeroERP.Modules.MasterData/AeroERP.Modules.MasterData.csproj" />
     <Project Path="src/AeroERP.Modules.MobileWork/AeroERP.Modules.MobileWork.csproj" />
+    <Project Path="src/AeroERP.Modules.OrganizationCollaboration/AeroERP.Modules.OrganizationCollaboration.csproj" />
     <Project Path="src/AeroERP.Modules.Planning/AeroERP.Modules.Planning.csproj" />
     <Project Path="src/AeroERP.Modules.PositionPermissions/AeroERP.Modules.PositionPermissions.csproj" />
     <Project Path="src/AeroERP.Modules.Procurement/AeroERP.Modules.Procurement.csproj" />

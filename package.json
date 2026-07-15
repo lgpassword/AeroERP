@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "npm run dev --workspace @aeroerp/web",
     "build": "npm run build --workspace @aeroerp/ui-style && npm run build --workspace @aeroerp/ui-kit && npm run build --workspace @aeroerp/web",
-    "lint": "npm run lint --workspace @aeroerp/web"
+    "lint": "npm run lint --workspace @aeroerp/web",
+    "screenshots": "node scripts/capture-screenshots.mjs"
   },
   "workspaces": [
     "apps/*",
@@ -18,5 +19,8 @@
     "react",
     "dotnet"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
 }

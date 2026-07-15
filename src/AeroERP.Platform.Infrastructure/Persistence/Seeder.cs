@@ -91,10 +91,10 @@ public static class Seeder
         if (!await dbContext.Roles.AnyAsync(cancellationToken))
         {
             var adminRole = new AppRole(PlatformRoleCatalog.PlatformAdmin, "平台管理员");
-            adminRole.SetModuleAccess(["platform", "master-data", "procurement", "sales", "inventory", "wms", "mobile-work", "integration", "document-exchange", "finance", "workflow", "control", "localization", "position-permissions", "manufacturing", "advanced-manufacturing", "reporting", "quality", "planning"]);
+            adminRole.SetModuleAccess(["platform", "organization-collaboration", "people-management", "plugin-center", "master-data", "crm", "procurement", "sales", "inventory", "wms", "mobile-work", "integration", "channel-integration", "document-exchange", "finance", "workflow", "control", "localization", "position-permissions", "manufacturing", "advanced-manufacturing", "reporting", "quality", "planning"]);
 
             var operationsRole = new AppRole(PlatformRoleCatalog.OperationsManager, "运营经理");
-            operationsRole.SetModuleAccess(["master-data", "procurement", "sales", "inventory", "wms", "mobile-work", "integration", "document-exchange", "finance", "workflow", "control", "localization", "manufacturing", "advanced-manufacturing", "reporting", "quality", "planning"]);
+            operationsRole.SetModuleAccess(["master-data", "crm", "procurement", "sales", "inventory", "wms", "mobile-work", "integration", "channel-integration", "document-exchange", "finance", "workflow", "control", "localization", "manufacturing", "advanced-manufacturing", "reporting", "quality", "planning"]);
 
             var purchaserRole = new AppRole(PlatformRoleCatalog.Purchaser, "采购专员");
             purchaserRole.SetModuleAccess(["procurement", "inventory", "workflow"]);
@@ -116,9 +116,9 @@ public static class Seeder
             foreach (var role in roles)
             {
                 var nextModules = role.Key == PlatformRoleCatalog.PlatformAdmin
-                    ? role.ModuleAccesses.Select(x => x.ModuleKey).Concat(["platform", "master-data", "procurement", "sales", "inventory", "wms", "mobile-work", "integration", "document-exchange", "finance", "workflow", "control", "localization", "position-permissions", "manufacturing", "advanced-manufacturing", "reporting", "quality", "planning"])
+                    ? role.ModuleAccesses.Select(x => x.ModuleKey).Concat(["platform", "organization-collaboration", "people-management", "plugin-center", "master-data", "crm", "procurement", "sales", "inventory", "wms", "mobile-work", "integration", "channel-integration", "document-exchange", "finance", "workflow", "control", "localization", "position-permissions", "manufacturing", "advanced-manufacturing", "reporting", "quality", "planning"])
                     : role.Key == PlatformRoleCatalog.OperationsManager
-                        ? role.ModuleAccesses.Select(x => x.ModuleKey).Concat(["master-data", "procurement", "sales", "inventory", "wms", "mobile-work", "integration", "document-exchange", "finance", "workflow", "control", "localization", "manufacturing", "advanced-manufacturing", "reporting", "quality", "planning"])
+                        ? role.ModuleAccesses.Select(x => x.ModuleKey).Concat(["master-data", "crm", "procurement", "sales", "inventory", "wms", "mobile-work", "integration", "channel-integration", "document-exchange", "finance", "workflow", "control", "localization", "manufacturing", "advanced-manufacturing", "reporting", "quality", "planning"])
                         : role.ModuleAccesses.Select(x => x.ModuleKey).Concat(["procurement", "inventory", "workflow"]);
 
                 var before = role.ModuleAccesses.Select(x => x.ModuleKey).OrderBy(x => x).ToArray();
@@ -133,14 +133,26 @@ public static class Seeder
             }
         }
 
-        if (!await dbContext.Users.AnyAsync(cancellationToken))
-        {
-            var adminRole = await dbContext.Roles.FirstAsync(x => x.Key == PlatformRoleCatalog.PlatformAdmin, cancellationToken);
-            var adminUser = new AppUser("admin", "系统管理员", string.Empty, true);
-            adminUser.SetPasswordHash(passwordHasher.HashPassword(adminUser, "Admin@123456"));
-            adminUser.UpdateRoles([adminRole.Id]);
+        var platformAdminRole = await dbContext.Roles.FirstAsync(x => x.Key == PlatformRoleCatalog.PlatformAdmin, cancellationToken);
+        var adminUser = await dbContext.Users
+            .Include(x => x.RoleAssignments)
+            .FirstOrDefaultAsync(x => x.UserName == "admin", cancellationToken);
 
+        if (adminUser is null)
+        {
+            adminUser = new AppUser("admin", "系统管理员", string.Empty, true);
+            adminUser.SetPasswordHash(passwordHasher.HashPassword(adminUser, "Admin@123456"));
+            adminUser.UpdateRoles([platformAdminRole.Id]);
             dbContext.Users.Add(adminUser);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        else if (!adminUser.RoleAssignments.Any(x => x.RoleId == platformAdminRole.Id))
+        {
+            var roleIds = adminUser.RoleAssignments
+                .Select(x => x.RoleId)
+                .Append(platformAdminRole.Id)
+                .ToList();
+            adminUser.UpdateRoles(roleIds);
             await dbContext.SaveChangesAsync(cancellationToken);
         }
     }

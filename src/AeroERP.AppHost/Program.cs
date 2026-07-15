@@ -9,6 +9,7 @@ using AeroERP.Modules.Localization.Endpoints;
 using AeroERP.Modules.Manufacturing.Endpoints;
 using AeroERP.Modules.MasterData.Endpoints;
 using AeroERP.Modules.MobileWork.Endpoints;
+using AeroERP.Modules.OrganizationCollaboration.Endpoints;
 using AeroERP.Modules.Planning.Endpoints;
 using AeroERP.Modules.PositionPermissions.Endpoints;
 using AeroERP.Modules.Procurement.Endpoints;
@@ -223,6 +224,7 @@ app.MapWmsEndpoints();
 app.MapMobileWorkEndpoints();
 app.MapIntegrationEndpoints();
 app.MapDocumentExchangeEndpoints();
+app.MapOrganizationCollaborationEndpoints();
 
 app.Run();
 

@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Building2, Boxes, RefreshCcw, UsersRound, Warehouse as WarehouseIcon } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, Building2, Boxes, RefreshCcw, UsersRound, Warehouse as WarehouseIcon, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { EmptyState, PageShell, SectionBlock, StatTile } from "@aeroerp/ui-kit";
 import { api } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
@@ -133,8 +133,6 @@ export function MasterDataPage() {
     isEnabled: true,
   });
 
-  const maintenanceRef = useRef<HTMLElement | null>(null);
-
   const customers = customersQuery.data ?? [];
   const suppliers = suppliersQuery.data ?? [];
   const items = itemsQuery.data ?? [];
@@ -232,14 +230,23 @@ export function MasterDataPage() {
 
   useEffect(() => {
     if (!selectedPanel) {
-      return;
+      return undefined;
     }
 
-    const timer = window.setTimeout(() => {
-      maintenanceRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 120);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
-    return () => window.clearTimeout(timer);
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setSelectedPanel(null);
+      }
+    }
+
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", closeOnEscape);
+    };
   }, [selectedPanel]);
 
   async function runAction(actionKey: string, action: () => Promise<void>, successText?: string) {
@@ -395,7 +402,7 @@ export function MasterDataPage() {
             <StatTile label="停用对象" value={Math.max(totalEntities - enabledTotal, 0)} tone={totalEntities === enabledTotal ? "success" : "warning"} />
           </section>
 
-          <SectionBlock title="结构分析图" hint="先看结构分布，再点击图卡进入对应维护区。">
+          <SectionBlock title="结构分析图" hint="先看结构分布，再点击图卡打开对应维护弹窗。">
             <div className="master-dashboard-grid">
               {chartCards.map((card) => {
                 const Icon = card.icon;
@@ -518,39 +525,52 @@ export function MasterDataPage() {
             </div>
           </SectionBlock>
 
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.section
-              key={selectedPanel ?? "empty"}
-              ref={maintenanceRef}
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.22 }}
-            >
-              <SectionBlock
-                title="维护工作台"
-                hint={selectedMeta
-                  ? `当前焦点：${selectedMeta.title}。点击上方图卡切换维护对象。`
-                  : "点击上方图卡后，在这里查看结构清单并执行新增。"}
+          <AnimatePresence>
+            {selectedPanel ? (
+              <motion.div
+                className="master-modal-backdrop"
+                role="presentation"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                onMouseDown={(event) => {
+                  if (event.target === event.currentTarget) {
+                    setSelectedPanel(null);
+                  }
+                }}
               >
-                {!selectedPanel ? (
-                  <EmptyState
-                    title="先选择分析对象"
-                    description="当前页面默认展示结构分析，不直接弹出录入表单。请点击上方图卡或链路节点进入维护区。"
-                  />
-                ) : (
-                  <div className="master-maintenance-panel">
-                    <div className="master-panel-header">
-                      <div>
-                        <h3>{selectedMeta?.title}</h3>
-                        <p>当前维护区只展示真实数据，不注入任何演示记录。</p>
-                      </div>
+                <motion.section
+                  className="master-modal"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="master-modal-title"
+                  initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <header className="master-modal-header">
+                    <div>
+                      <small>{selectedMeta?.shortTitle}维护</small>
+                      <h2 id="master-modal-title">{selectedMeta?.title}</h2>
+                      <p>当前窗口只展示真实数据，不注入任何演示记录。</p>
                     </div>
+                    <button
+                      type="button"
+                      className="secondary icon-only-button"
+                      onClick={() => setSelectedPanel(null)}
+                      aria-label="关闭维护弹窗"
+                    >
+                      <X size={18} />
+                    </button>
+                  </header>
 
-                    {!canManageMasterData ? (
-                      <div className="section-note">{selectedMeta?.readonlyDescription}</div>
-                    ) : null}
+                  {!canManageMasterData ? (
+                    <div className="section-note">{selectedMeta?.readonlyDescription}</div>
+                  ) : null}
 
+                  <div className="master-maintenance-panel">
                     {selectedPanel === "customers" ? (
                       <div className="master-maintenance-grid">
                         <div className="master-entity-list">
@@ -814,9 +834,9 @@ export function MasterDataPage() {
                       </div>
                     ) : null}
                   </div>
-                )}
-              </SectionBlock>
-            </motion.section>
+                </motion.section>
+              </motion.div>
+            ) : null}
           </AnimatePresence>
         </>
       )}

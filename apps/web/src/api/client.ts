@@ -10,6 +10,9 @@ import type {
   BarcodeExecution,
   Bom,
   Customer,
+  CollaborationConversation,
+  CollaborationEvent,
+  CollaborationMessage,
   CurrentUser,
   Currency,
   DocumentExchangeOverview,
@@ -118,6 +121,79 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T;
 }
 
+async function requestBlob(path: string): Promise<Blob> {
+  const response = await fetch(`${baseUrl}${path}`, { headers: authorizedHeaders() });
+  if (!response.ok) {
+    const maybeJson = await response.json().catch(() => null);
+    throw new Error(maybeJson?.message ?? `请求失败：${response.status}`);
+  }
+
+  return response.blob();
+}
+
+function authorizedHeaders() {
+  const headers = new Headers();
+  if (accessToken) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
+  }
+
+  return headers;
+}
+
+function subscribeJsonEventStream<T>(
+  path: string,
+  onEvent: (event: T, eventName: string) => void,
+  onError?: (error: Error) => void,
+) {
+  const controller = new AbortController();
+
+  const run = async () => {
+    while (!controller.signal.aborted) {
+      try {
+        const response = await fetch(`${baseUrl}${path}`, {
+          headers: authorizedHeaders(),
+          signal: controller.signal,
+        });
+        if (!response.ok || !response.body) {
+          throw new Error(`事件流连接失败：${response.status}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        while (!controller.signal.aborted) {
+          const { value, done } = await reader.read();
+          if (done) {
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+          const chunks = buffer.split(/\r?\n\r?\n/);
+          buffer = chunks.pop() ?? "";
+          for (const chunk of chunks) {
+            const lines = chunk.split(/\r?\n/);
+            const eventName = lines.find((line) => line.startsWith("event:"))?.slice(6).trim() ?? "message";
+            const data = lines.find((line) => line.startsWith("data:"))?.slice(5).trim();
+            if (data) {
+              onEvent(JSON.parse(data) as T, eventName);
+            }
+          }
+        }
+      } catch (error) {
+        if (controller.signal.aborted) {
+          break;
+        }
+
+        onError?.(error instanceof Error ? error : new Error("事件流连接失败。"));
+        await new Promise((resolve) => window.setTimeout(resolve, 3000));
+      }
+    }
+  };
+
+  void run();
+  return () => controller.abort();
+}
+
 /** AeroERP Web 使用的后端 API 门面，按平台、业务模块和闭环动作组织。 */
 export const api = {
   // 平台认证、模块可见性、组织、角色和用户治理。
@@ -184,6 +260,30 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ decision, reviewerComment }),
     }),
+  // 组织协同消息，提供真实会话、消息读取、附件和已读状态。
+  listCollaborationConversations: () =>
+    request<CollaborationConversation[]>("/api/organization-collaboration/conversations"),
+  ensureDirectCollaborationConversation: (targetUserId: string) =>
+    request<CollaborationConversation>("/api/organization-collaboration/direct-conversations", {
+      method: "POST",
+      body: JSON.stringify({ targetUserId }),
+    }),
+  listCollaborationMessages: (conversationId: string) =>
+    request<CollaborationMessage[]>(`/api/organization-collaboration/conversations/${conversationId}/messages`),
+  sendCollaborationMessage: (conversationId: string, content: string, attachments?: { fileName: string; contentType: string; contentBase64: string }[]) =>
+    request<CollaborationMessage>(`/api/organization-collaboration/conversations/${conversationId}/messages`, {
+      method: "POST",
+      body: JSON.stringify({ content, attachments }),
+    }),
+  markCollaborationConversationRead: (conversationId: string, lastReadMessageId?: string | null) =>
+    request<CollaborationConversation>(`/api/organization-collaboration/conversations/${conversationId}/read-state`, {
+      method: "PUT",
+      body: JSON.stringify({ lastReadMessageId: lastReadMessageId ?? null }),
+    }),
+  downloadCollaborationAttachment: (downloadUrl: string) => requestBlob(downloadUrl),
+  getCollaborationAttachmentUrl: (downloadUrl: string) => `${baseUrl}${downloadUrl}`,
+  subscribeCollaborationEvents: (onEvent: (event: CollaborationEvent, eventName: string) => void, onError?: (error: Error) => void) =>
+    subscribeJsonEventStream<CollaborationEvent>("/api/organization-collaboration/events", onEvent, onError),
   // 主数据是采购、销售、库存、制造等模块的公共业务基础。
   listCustomers: () => request<Customer[]>("/api/master-data/customers"),
   createCustomer: (payload: {

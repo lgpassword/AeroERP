@@ -5,8 +5,10 @@ import { Shell } from "./components/Shell";
 import { api } from "./api/client";
 import { useAsyncData } from "./hooks/useAsyncData";
 import { LanguageProvider } from "./i18n/LanguageContext";
-import { getFirstVisibleModuleRoute, moduleRoutes, type KnownModuleKey } from "./modules/moduleNavigation";
+import { moduleRoutes, workspaceRoute, type KnownModuleKey } from "./modules/moduleNavigation";
 import { ControlPage } from "./pages/ControlPage";
+import { ChannelIntegrationPage } from "./pages/ChannelIntegrationPage";
+import { CrmPage } from "./pages/CrmPage";
 import { DocumentExchangePage } from "./pages/DocumentExchangePage";
 import { LoginPage } from "./pages/LoginPage";
 import { FinancePage } from "./pages/FinancePage";
@@ -17,6 +19,9 @@ import { LocalizationPage } from "./pages/LocalizationPage";
 import { ManufacturingPage } from "./pages/ManufacturingPage";
 import { MasterDataPage } from "./pages/MasterDataPage";
 import { MobileWorkPage } from "./pages/MobileWorkPage";
+import { OrganizationCollaborationPage } from "./pages/OrganizationCollaborationPage";
+import { PeopleManagementPage } from "./pages/PeopleManagementPage";
+import { PluginCenterPage } from "./pages/PluginCenterPage";
 import { PlatformPage } from "./pages/PlatformPage";
 import { PositionPermissionsPage } from "./pages/PositionPermissionsPage";
 import { PlanningPage } from "./pages/PlanningPage";
@@ -26,6 +31,7 @@ import { ReportingPage } from "./pages/ReportingPage";
 import { SalesPage } from "./pages/SalesPage";
 import { WmsPage } from "./pages/WmsPage";
 import { WorkflowPage } from "./pages/WorkflowPage";
+import { WorkspacePage } from "./pages/WorkspacePage";
 import type { ModuleVisibility } from "./types/api";
 
 const loadEmptyModules = () => Promise.resolve<ModuleVisibility[]>([]);
@@ -71,9 +77,9 @@ function ProtectedApp() {
 
   const visibleModuleKeys = new Set(visibleModules.data.map((module) => module.key));
   const canAccess = (moduleKey: KnownModuleKey) => visibleModuleKeys.has(moduleKey);
-  const defaultRoute = getFirstVisibleModuleRoute(visibleModuleKeys);
+  const defaultRoute = workspaceRoute;
 
-  if (!defaultRoute) {
+  if (visibleModules.data.length === 0) {
     return (
       <div className="app-shell centered">
         <EmptyState
@@ -87,14 +93,20 @@ function ProtectedApp() {
   return (
     <Routes>
       <Route element={<Shell modules={visibleModules.data} user={user} />}>
+        <Route path={workspaceRoute} element={<WorkspacePage modules={visibleModules.data} user={user} />} />
         {canAccess("platform") ? <Route path={moduleRoutes.platform} element={<PlatformPage />} /> : null}
+        {canAccess("organization-collaboration") ? <Route path={moduleRoutes["organization-collaboration"]} element={<OrganizationCollaborationPage />} /> : null}
+        {canAccess("people-management") ? <Route path={moduleRoutes["people-management"]} element={<PeopleManagementPage />} /> : null}
+        {canAccess("plugin-center") ? <Route path={moduleRoutes["plugin-center"]} element={<PluginCenterPage />} /> : null}
         {canAccess("master-data") ? <Route path={moduleRoutes["master-data"]} element={<MasterDataPage />} /> : null}
+        {canAccess("crm") ? <Route path={moduleRoutes.crm} element={<CrmPage />} /> : null}
         {canAccess("procurement") ? <Route path={moduleRoutes.procurement} element={<ProcurementPage />} /> : null}
         {canAccess("sales") ? <Route path={moduleRoutes.sales} element={<SalesPage />} /> : null}
         {canAccess("inventory") ? <Route path={moduleRoutes.inventory} element={<InventoryPage />} /> : null}
         {canAccess("wms") ? <Route path={moduleRoutes.wms} element={<WmsPage />} /> : null}
         {canAccess("mobile-work") ? <Route path={moduleRoutes["mobile-work"]} element={<MobileWorkPage />} /> : null}
         {canAccess("integration") ? <Route path={moduleRoutes.integration} element={<IntegrationPage />} /> : null}
+        {canAccess("channel-integration") ? <Route path={moduleRoutes["channel-integration"]} element={<ChannelIntegrationPage />} /> : null}
         {canAccess("document-exchange") ? <Route path={moduleRoutes["document-exchange"]} element={<DocumentExchangePage />} /> : null}
         {canAccess("finance") ? <Route path={moduleRoutes.finance} element={<FinancePage />} /> : null}
         {canAccess("workflow") ? <Route path={moduleRoutes.workflow} element={<WorkflowPage />} /> : null}
@@ -107,6 +119,7 @@ function ProtectedApp() {
         {canAccess("quality") ? <Route path={moduleRoutes.quality} element={<QualityPage />} /> : null}
         {canAccess("planning") ? <Route path={moduleRoutes.planning} element={<PlanningPage />} /> : null}
         <Route path="/" element={<Navigate to={defaultRoute} replace />} />
+        <Route path="*" element={<Navigate to={defaultRoute} replace />} />
       </Route>
       <Route path="/login" element={<Navigate to={defaultRoute} replace />} />
     </Routes>

@@ -2,6 +2,10 @@
 export const platformPermissions = {
   platformManage: "platform.manage",
   organizationManage: "organization.manage",
+  organizationCollaborationRead: "organization-collaboration.read",
+  organizationCollaborationMessage: "organization-collaboration.message",
+  peopleManagementRead: "people-management.read",
+  peopleManagementManage: "people-management.manage",
   identityUserRead: "identity.user.read",
   identityUserManage: "identity.user.manage",
   identityUserPasswordManage: "identity.user.password.manage",

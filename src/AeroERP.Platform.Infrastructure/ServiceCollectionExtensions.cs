@@ -8,6 +8,7 @@ using AeroERP.Modules.Inventory.Services;
 using AeroERP.Modules.Localization.Services;
 using AeroERP.Modules.Manufacturing.Services;
 using AeroERP.Modules.MobileWork.Services;
+using AeroERP.Modules.OrganizationCollaboration.Services;
 using AeroERP.Modules.Planning.Services;
 using AeroERP.Modules.PositionPermissions.Services;
 using AeroERP.Modules.Procurement.Services;
@@ -84,6 +85,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMobileWorkService, MobileWorkService>();
         services.AddScoped<IIntegrationService, IntegrationService>();
         services.AddScoped<IDocumentExchangeService, DocumentExchangeService>();
+        services.AddScoped<IOrganizationCollaborationService, OrganizationCollaborationService>();
         services.AddScoped<IPluginSchemaInitializer, CorePluginSchemaInitializer>();
         services.AddScoped<IPluginSchemaInitializer, PositionPermissionPluginSchemaInitializer>();
         services.AddScoped<IPluginSchemaInitializer, WmsPluginSchemaInitializer>();
@@ -92,6 +94,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPluginSchemaInitializer, MobileWorkPluginSchemaInitializer>();
         services.AddScoped<IPluginSchemaInitializer, IntegrationPluginSchemaInitializer>();
         services.AddScoped<IPluginSchemaInitializer, DocumentExchangePluginSchemaInitializer>();
+        services.AddScoped<IPluginSchemaInitializer, OrganizationCollaborationPluginSchemaInitializer>();
 
         return services;
     }

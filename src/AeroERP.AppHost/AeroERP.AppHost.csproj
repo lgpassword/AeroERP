@@ -16,6 +16,7 @@
     <ProjectReference Include="..\AeroERP.Modules.Localization\AeroERP.Modules.Localization.csproj" />
     <ProjectReference Include="..\AeroERP.Modules.Manufacturing\AeroERP.Modules.Manufacturing.csproj" />
     <ProjectReference Include="..\AeroERP.Modules.MobileWork\AeroERP.Modules.MobileWork.csproj" />
+    <ProjectReference Include="..\AeroERP.Modules.OrganizationCollaboration\AeroERP.Modules.OrganizationCollaboration.csproj" />
     <ProjectReference Include="..\AeroERP.Modules.AdvancedManufacturing\AeroERP.Modules.AdvancedManufacturing.csproj" />
     <ProjectReference Include="..\AeroERP.Modules.Planning\AeroERP.Modules.Planning.csproj" />
     <ProjectReference Include="..\AeroERP.Modules.PositionPermissions\AeroERP.Modules.PositionPermissions.csproj" />

@@ -140,6 +140,55 @@ export type LoginResponse = {
   user: CurrentUser;
 };
 
+// 组织协同 DTO，承载真实会话、消息、附件和已读状态。
+export type CollaborationParticipant = {
+  userId: string;
+  userName: string;
+  displayName: string;
+};
+
+export type CollaborationConversation = {
+  id: string;
+  conversationKey: string;
+  scopeType: string;
+  title: string;
+  participants: CollaborationParticipant[];
+  lastMessagePreview: string;
+  unreadCount: number;
+  lastReadAtUtc?: string | null;
+  lastMessageAtUtc?: string | null;
+  updatedAtUtc: string;
+};
+
+export type CollaborationAttachment = {
+  id: string;
+  messageId: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+  isImage: boolean;
+  downloadUrl: string;
+  previewUrl: string;
+  createdAtUtc: string;
+};
+
+export type CollaborationMessage = {
+  id: string;
+  conversationId: string;
+  senderUserId: string;
+  senderUserName: string;
+  senderDisplayName: string;
+  content: string;
+  attachments: CollaborationAttachment[];
+  createdAtUtc: string;
+};
+
+export type CollaborationEvent = {
+  eventKey: string;
+  serverTimeUtc: string;
+  cursor: number;
+};
+
 // 主数据 DTO，作为采购、销售、库存和制造的公共引用数据。
 export type Supplier = {
   id: string;

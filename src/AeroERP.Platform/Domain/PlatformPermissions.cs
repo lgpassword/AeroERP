@@ -14,6 +14,22 @@ public static class PlatformPermissions
     /// </summary>
     public const string OrganizationManage = "organization.manage";
     /// <summary>
+    /// Organization Collaboration Read。
+    /// </summary>
+    public const string OrganizationCollaborationRead = "organization-collaboration.read";
+    /// <summary>
+    /// Organization Collaboration Message。
+    /// </summary>
+    public const string OrganizationCollaborationMessage = "organization-collaboration.message";
+    /// <summary>
+    /// People Management Read。
+    /// </summary>
+    public const string PeopleManagementRead = "people-management.read";
+    /// <summary>
+    /// People Management Manage。
+    /// </summary>
+    public const string PeopleManagementManage = "people-management.manage";
+    /// <summary>
     /// Identity User Read。
     /// </summary>
     public const string IdentityUserRead = "identity.user.read";
@@ -309,6 +325,10 @@ public static class PlatformPermissions
     [
         PlatformManage,
         OrganizationManage,
+        OrganizationCollaborationRead,
+        OrganizationCollaborationMessage,
+        PeopleManagementRead,
+        PeopleManagementManage,
         IdentityUserRead,
         IdentityUserManage,
         IdentityUserPasswordManage,
