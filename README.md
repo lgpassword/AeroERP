@@ -128,6 +128,7 @@ AeroERP 的模块入口由后端模块可见性和用户权限共同控制。没
 
 - [English README](README.en-US.md)：English introduction, build, run, and collaboration guide.
 - [使用说明](docs/USER-GUIDE.zh-CN.md)：本地运行、登录、操作流程和业务链路。
+- [完整操作文档](docs/OPERATION-GUIDE.zh-CN.md)：逐页介绍所有模块界面、功能入口、操作方式、权限状态和业务衔接。
 - [User Guide](docs/USER-GUIDE.en-US.md)：English operating guide.
 - [模块说明](docs/MODULES.md)：后端模块、前端页面、职责边界和路由元数据。
 - [项目约束](docs/PROJECT-CONSTRAINTS.md)：源码结构、产品规则、代码质量、治理和文档约束。
